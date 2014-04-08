@@ -36,3 +36,9 @@ Here an example file which defines two variables in a simulated response object,
   }
 ]
 ```
+
+To run such a file, just run aws-runner passing a filename as an arg on the command line:
+
+```
+node aws-runner.js some-file.json
+```
