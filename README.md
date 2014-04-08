@@ -2,6 +2,7 @@ Use this node script to execute a series of aws api calls which are defined in f
 
 Here an example file which defines two variables in a simulated response object, and later uses them as part of a Route53 RecordSet Alias
 
+```
 [
   {
     "response" : {
@@ -34,3 +35,4 @@ Here an example file which defines two variables in a simulated response object,
     }
   }
 ]
+```
