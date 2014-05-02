@@ -46,3 +46,50 @@ To run such a file, just run aws-runner passing a filename as an arg on the comm
 ```
 node aws-runner.js some-file.json
 ```
+
+Unix Pipe with Data Streams
+--------
+
+That's all great, but it doesn't scale!  That's ok we've got a solution to that.  Since the purpose of aws-runner is to allow us to group together aws calls into standard process, we need to be able to provide these processes with dynamic data.  The way to do that is by giving aws-runner a stream of data when executed, this is referred to as pipiing data.  A simple command line call would look like:
+
+```
+echo '{
+  "DNSName" : "opstest.aimstaging.com",
+  "HostedZoneId" : "Z17J9Y6BY2ZRYC",
+  "Target" : {
+    "DNSName" : "marine-test-1420245491.us-west-2.elb.amazonaws.com",
+    "HostedZoneId" : "Z33MTJ483KN6FU"
+  }
+}' | node aws-runner.js some-file.json
+```
+The stream provides is a json string and will be parsed into a variables object.  It can be as big and have as much depth as needed.
+
+The contents of 'some-file.json' might look like the file below, please note the contents of the evals 'variables.*'
+
+```javascript
+[
+  {
+    "api" : "Route53",
+    "command" : "changeResourceRecordSets",
+    "params" : {
+      "ChangeBatch": {
+         "Changes": [
+         {
+           "Action": "UPSERT",
+           "ResourceRecordSet": {
+             "Name": "eval(variables.DNSName)",
+             "Type": "A",
+             "AliasTarget": {
+               "DNSName": "eval(variables.Target.DNSName)",
+               "EvaluateTargetHealth": true,
+               "HostedZoneId": "eval(variables.Target.HostedZoneId)"
+             }
+           }
+         }
+         ]
+       },
+       "HostedZoneId": "eval(variables.HostedZoneId)"
+    }
+  }
+]
+```

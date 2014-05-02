@@ -1,11 +1,5 @@
 [
   {
-    "response" : {
-      "var1" : "marine-test-1420245491.us-west-2.elb.amazonaws.com",
-      "var2" : "Z33MTJ483KN6FU"
-    }
-  },
-  {
     "api" : "Route53",
     "command" : "changeResourceRecordSets",
     "params" : {
@@ -14,18 +8,18 @@
          {
            "Action": "UPSERT",
            "ResourceRecordSet": {
-             "Name": "ops.aimstaging.com",
+             "Name": "eval(variables.DNSName)",
              "Type": "A",
              "AliasTarget": {
-               "DNSName": "eval(response.var1)",
+               "DNSName": "eval(variables.Target.DNSName)",
                "EvaluateTargetHealth": true,
-               "HostedZoneId": "eval(response.var2)"
+               "HostedZoneId": "eval(variables.Target.HostedZoneId)"
              }
            }
          }
          ]
        },
-       "HostedZoneId": "Z17J9Y6BY2ZRYC"
+       "HostedZoneId": "eval(variables.HostedZoneId)"
     }
   }
 ]

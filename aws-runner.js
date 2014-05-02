@@ -4,7 +4,6 @@ var AWS = require('aws-sdk');
 var fs = require('fs');
 var util = require('util');
 var argv = require('minimist')(process.argv.slice(2));
-console.dir(argv);
 
 AWS.config.loadFromPath('./aws-config.json');
 
@@ -46,13 +45,13 @@ function parseParams (params, response) {
       var arr = [];
       
       for (var i = params[key].length - 1; i >= 0; i--) {
-        arr.push(evalutateParams(params[key][i], response));
+        arr.push(parseParams(params[key][i], response));
       }
 
       params[key] = arr;
     }
     else if(typeof params[key] === "object") {
-      params[key] = evalutateParams(params[key], response);
+      params[key] = parseParams(params[key], response);
     } 
   }
   // console.log(params)
@@ -98,15 +97,36 @@ function runInstruction (response) {
 For each filename passed to the program, the file is read, and parsed into aws instructions.
 */
 
-argv._.forEach(function(filename) {
-  fs.readFile(filename, 'utf8', function (err, data) {
-    if (err) {
-      console.log('Error: ' + err);
-      return;
-    }
+function begin () {
+  argv._.forEach(function(filename) {
+    fs.readFile(filename, 'utf8', function (err, data) {
+      if (err) {
+        console.log('Error: ' + err);
+        return;
+      }
 
-    insts = JSON.parse(data);
+      insts = JSON.parse(data);
 
-    runInstruction();
+      runInstruction();
+    });
   });
+}
+
+/*
+Finally the entry point for our script, process any data stream as a json object 
+*/
+
+var variables = "";
+
+process.stdin.resume();
+process.stdin.setEncoding('utf8');
+
+process.stdin.on('data', function (chunk) {
+  variables+=chunk;
 });
+
+process.stdin.on('end', function () {
+  if (variables) variables = JSON.parse(variables);
+  begin();
+});
+
