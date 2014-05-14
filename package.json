@@ -1,0 +1,24 @@
+{
+  "name": "aws-runner",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Reads JSON files that describe a list of AWS API calls, and executes calls in order. Is currently capable of pulling in assets from disc, and using response variables from previous calls.",
+  "main": "aws-runner.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/liquidti/aws-runner.git"
+  },
+  "keywords": [
+    "aws",
+    "api"
+  ],
+  "author": "Jonathan Regeimbal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/liquidti/aws-runner/issues"
+  },
+  "homepage": "https://github.com/liquidti/aws-runner"
+}
