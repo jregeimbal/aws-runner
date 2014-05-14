@@ -118,15 +118,21 @@ Finally the entry point for our script, process any data stream as a json object
 
 var variables = "";
 
-process.stdin.resume();
-process.stdin.setEncoding('utf8');
+// wait for stdin if flag -s is passed
+if (argv.s) {
 
-process.stdin.on('data', function (chunk) {
-  variables+=chunk;
-});
+  process.stdin.setEncoding('utf8');
 
-process.stdin.on('end', function () {
-  if (variables) variables = JSON.parse(variables);
+  process.stdin.on('data', function (chunk) {
+    variables+=chunk;
+  });
+
+  process.stdin.on('end', function () {
+    if (variables) variables = JSON.parse(variables);
+    begin();
+  });
+
+  process.stdin.resume();
+} else {
   begin();
-});
-
+}
