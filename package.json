@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "description": "Reads JSON files that describe a list of AWS API calls, and executes calls in order. Is currently capable of pulling in assets from disc, and using response variables from previous calls.",
   "main": "aws-runner.js",
+  "dependencies": {
+    "aws-sdk": "~2.0.0-rc.15",
+    "minimist": "~0.1.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
