@@ -1,8 +1,10 @@
+# AWS Runner
+
 Use this node script to execute a series of aws api calls which are defined in file formatted as JSON.
 
 !!! This repo contains private keys, and must remain a private repo !!!
 
-aws-runner is currently coded to pull in the OpsWorks, Route53, and ELB apis, however it is coded to support all apis, and pulling in an API is currently a single line of core.  It could be expanded in several ways so that the apis do not need to be specified explicitly.
+aws-runner is currently coded to pull in the OpsWorks, Route53, and ELB apis, however it is coded to support all apis, and pulling in an API is currently a single line of code.  It could be expanded in several ways so that the apis do not need to be specified explicitly.
 
 Here an example file which defines two variables in a simulated response object, and later uses them as part of a Route53 RecordSet Alias
 
@@ -41,14 +43,22 @@ Here an example file which defines two variables in a simulated response object,
 ]
 ```
 
+## Usage and flags
+
 To run such a file, just run aws-runner passing a filename as an arg on the command line:
 
 ```
 node aws-runner.js some-file.json
 ```
 
-Unix Pipe with Data Streams
---------
+Aws-runner accepts several flags.
+-s : Stream mode, aws-runner will accept a stream of data as variables, see below for 'Unix Pipe with Data Streams'.
+-d : Debug mode, this will cause aws-runner to produce debug.log, which contains information about runs.
+-v : Verbosity mode, this will cause aws-runner to produce debug info in the console.
+
+
+## Unix Pipe with Data Streams
+
 
 That's all great, but it doesn't scale!  That's ok we've got a solution to that.  Since the purpose of aws-runner is to allow us to group together aws calls into standard process, we need to be able to provide these processes with dynamic data.  The way to do that is by giving aws-runner a stream of data when executed, this is referred to as pipiing data.  A simple command line call would look like:
 
