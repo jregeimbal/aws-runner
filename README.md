@@ -52,10 +52,12 @@ node aws-runner.js some-file.json
 ```
 
 Aws-runner accepts several flags.
+
+```
 -s : Stream mode, aws-runner will accept a stream of data as variables, see below for 'Unix Pipe with Data Streams'.
 -d : Debug mode, this will cause aws-runner to produce debug.log, which contains information about runs.
 -v : Verbosity mode, this will cause aws-runner to produce debug info in the console.
-
+```
 
 ## Unix Pipe with Data Streams
 
@@ -70,7 +72,7 @@ echo '{
     "DNSName" : "marine-test-1420245491.us-west-2.elb.amazonaws.com",
     "HostedZoneId" : "Z33MTJ483KN6FU"
   }
-}' | node aws-runner.js some-file.json
+}' | node aws-runner.js some-file.json -s
 ```
 The stream provides is a json string and will be parsed into a variables object.  It can be as big and have as much depth as needed.
 
