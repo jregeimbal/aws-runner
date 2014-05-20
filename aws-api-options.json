@@ -1,0 +1,5 @@
+{
+  "OpsWorks" : { "region":"us-east-1" },
+  "ELB" : { "apiVersion":"2012-06-01" },
+  "Route53" : { "apiVersion":"2013-04-01", "region":"us-east-1" }
+}

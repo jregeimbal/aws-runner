@@ -8,19 +8,22 @@ var argv = require('minimist')(process.argv.slice(2));
 var log_file = fs.createWriteStream('debug.log', {flags : 'w'});
 var log_stdout = process.stdout;
 
-console.log = function(d) { // 
-  if (argv.d) log_file.write(util.format(d) + '\n');
-  if (argv.v) log_stdout.write(util.format(d) + '\n');
+console.log = function() { // 
+  if(arguments && arguments.length > 0) {     
+    for (var i = 0; i < arguments.length; i++) {
+      var d = arguments[i];
+      if (argv.d) log_file.write(util.format(d) + '\n');
+      if (argv.v) log_stdout.write(util.format(d) + '\n');
+    }
+  }
 };
 
 try {
   AWS.config.loadFromPath('./aws-config.json');
 
+  var API_OPTIONS = {};
   var APIS = {};
 
-  APIS['OpsWorks'] = new AWS.OpsWorks({region:'us-east-1'});
-  APIS['ELB'] = new AWS.ELB({apiVersion:'2012-06-01'});
-  APIS['Route53'] = new AWS.Route53({apiVersion:'2013-04-01', region:'us-east-1'});
 
   var insts;
   var responses = [];
@@ -29,31 +32,35 @@ try {
   This function parses a params object
   */
 
+  function parseString (value, response) {
+
+    if (value.substring(0, 5) === "eval(" && value.slice(-1) === ")") {
+      return eval(value.substr(5, value.length - 6));
+    }
+
+    if (value.substring(0, 5) === "file(" && value.slice(-1) === ")") {
+      return fs.readFileSync(value.substr(5, value.length - 6), {encoding: "utf8"});
+    }
+    return value;
+  }
+
   function parseParams (params, response) {
     // console.log('response');
     // console.log(response);
-    if(typeof params === "string") return params;
+    if(typeof params === "string") return parseString(params, response);
 
     for (var key in params) {
       if(typeof params[key] === "string") {
-        // console.log('string');
-        var value = params[key];
-        if (value.substring(0, 5) === "eval(" && value.slice(-1) === ")") {
-          params[key] = eval(value.substr(5, value.length - 6));
-        }
-
-        if (value.substring(0, 5) === "file(" && value.slice(-1) === ")") {
-          params[key] =  fs.readFileSync(value.substr(5, value.length - 6), {encoding: "utf8"});
-          console.log(params[key]);
-        }
-
+        //console.log('It's a string');
+        params[key] = parseString(params[key], response);        
         // console.log(params[key]);
       }
       else if(Object.prototype.toString.call( params[key] ) === '[object Array]' ) {
-        // console.log('ITS AN ARRAY ' + params[key].length);
+        // console.log('IT'S AN ARRAY ' + params[key].length);
+        // console.log(params[key]);
         var arr = [];
         
-        for (var i = params[key].length - 1; i >= 0; i--) {
+        for (var i = 0; i < params[key].length; i++) {
           arr.push(parseParams(params[key][i], response));
         }
 
@@ -84,14 +91,15 @@ try {
       }
     }
 
-    console.log(inst.api + ":" +inst.command);
+    console.log('', inst.api + ":" +inst.command);
     if (inst.params) parseParams(inst.params, response);
-    console.log('- Params:\n', util.inspect(inst.params, false, null));
+    console.log('- Params:', util.inspect(inst.params, false, null));
+
+    if (!APIS[inst.api]) APIS[inst.api] = new AWS[inst.api](API_OPTIONS[inst.api]);
 
     APIS[inst.api][inst.command](inst.params, function(err, data) {
-      if (data) console.log('- Response:\n', util.inspect(data, false, null));
+      if (data) console.log('- Response:', util.inspect(data, false, null));
       if (err) {
-        console.log('I am here');
         console.log(err, err.stack);
         responses.push(err);
       } else if (inst.sleep) {
@@ -111,17 +119,26 @@ try {
   */
 
   function begin () {
-    argv._.forEach(function(filename) {
-      fs.readFile(filename, 'utf8', function (err, data) {
-        if (err) {
-          console.log('Error: ' + err);
-          return;
-        }
+    fs.readFile('./aws-api-options.json', 'utf8', function (err, data) {
+      if (err) {
+        console.log('Error: ' + err);
+        return;
+      }
 
-        insts = JSON.parse(data);
+      API_OPTIONS = JSON.parse(data);
+    
+      argv._.forEach(function(filename) {
+        fs.readFile(filename, 'utf8', function (err, data) {
+          if (err) {
+            console.log('Error: ' + err);
+            return;
+          }
 
-        runInstruction(null, function(){       
-          log_stdout.write(util.format(responses) + '\n');
+          insts = JSON.parse(data);
+
+          runInstruction(null, function(){       
+            log_stdout.write(util.format(responses) + '\n');
+          });
         });
       });
     });
