@@ -1,0 +1,40 @@
+
+OpsWorks:createStack
+- Params:
+{ Name: 'Test Stack',
+  Region: 'us-west-2',
+  DefaultSshKeyName: 'aim-ops',
+  HostnameTheme: 'Fruits',
+  DefaultRootDeviceType: 'instance-store',
+  ServiceRoleArn: 'arn:aws:iam::936231435304:role/aws-opsworks-service-role',
+  DefaultInstanceProfileArn: 'arn:aws:iam::936231435304:instance-profile/aws-opsworks-ec2-role',
+  DefaultAvailabilityZone: 'us-west-2a',
+  ConfigurationManager: { Name: 'Chef', Version: '11.4' },
+  UseCustomCookbooks: true,
+  CustomCookbooksSource: 
+   { Revision: 'master',
+     SshKey: '-----BEGIN RSA PRIVATE KEY-----\r\nMIIEpAIBAAKCAQEAoF6R5VHFsZ6olBFXWVXqZpaStXpTjq9Vm4pSly7fOCpUrI0Dw9CWvDPqadqp\r\n9rNcstJEWoE/GCrlWGXpt7kwGdQrH0087SPrisKxyMG8MsYRQ6MpRbDkzOcFTfaiuaSCxUpq3z0E\r\noavGxA0Z9Ba93XWmjyGCB2Yj7EJu4qGoVIDArR0gqpBTwzhKourJrt6hn691iZpGZJ2jHOdxUhia\r\nRyw1uKUiNbv3faSAMX6CSXEFnMSX/z5xXKhKHogrJe/zZ+8RyxQJ/5bevIYRuElir3UEALILrrWo\r\n9Out1fJEvA7/DhlHUjYbNwUocxs3u0DVFfs7FPddFXPWv6lO8CW1ywIDAQABAoIBAETlO/JzteW/\r\nzpaF+Ku1gFUAXRi/68PByZpfy2mNxnH/pY7XqgVmyEskVpGRUjFdDvb35EupeOyuCQd4CPdYBLUj\r\n9D6nVQRfySI80Fn5+RsrAmG3Z9S70R/CJAJBcdklNtUBSnaLZUD7ZhH1uu+lEX5hu+ODtrPtCoPG\r\napLMdl+Onn67lZdCUJ6X8+3gZ5Sivgwn7ur0jeU76qOBaMGGrQ7cNrLMUmkU2FMnXmwX5qelSn0L\r\nDGgc+5AyvJf7AD4owE8Y7o7bq0SmaUk0rsaaKNCNSPq9mxZeBYlZsZKuGm3b0+0ElZqWTjyxzMXk\r\nePgj9GM5oRA4zcRkMRUcNwVlV4ECgYEA0o+moNe3GvneN1G9grv7w78fHYu1jpkgelC1phQCyPh2\r\n7rcm2z0FgMBVKVaOp4bMnMAhhxqYP0eS9IAEluhVnNYIX6Ae0qMKiig6Glog3NQr/g8LEk7yRxgW\r\nOfN3T7a5MwSzUTYd6Hf7JM3QdF7fGxX/HmK8XS7HhndVsCiz6QsCgYEAwvoZ8Y3o7PulgJVgeRWn\r\nL6792CSPRIyPrpccpsOPPjHT6gHkpeckx5vAkDA/x7TeF2PK3nSZNuZWAJtO2Xg7RYXXn6qbEmNv\r\nIodGyvUTmzVdLS/in2ULg56qhw6zP3iEU06+CPT9CAeR4StsNz1QM1HhioayWSIhJfHq7X8g3kEC\r\ngYEAtVL5hmddioCEqZTdoxipLZ+HdxUZy2v4ePzKAPQYleLJ4LaeYoxBEegPLmMYxBGkYJRgCw2O\r\n8Gd9mMopqZ74IvB6E4c7I989s04DAzB8Pk8Ed2uS+Dg+EZUfhtYv99h90f6JQTVeOhQglUgb7CrK\r\n7HNb2FnkpkYjkptvkhzrGZMCgYAKZp0Lra5HNgVWHqHO08DfYk5YQVsDJRxlC9qTassxXicXzJIN\r\n546mt0BGcMx2MsfGJ6SiyUWDEDZ2QdKq9ybyRnmCIu+yw2siRGUaXoh1NxuJVYyZRCKhGs2t9rLJ\r\nJ/ynFQQ+JhN5Yi39/PsA11x34F5PrW/GIXPzOjx1/toaAQKBgQCLB1z5vPhhVA/6uu11d9P6s851\r\nGAVVQtegVSEUGVWqz0BhBR0qwUerXoEmmcXhrif83nPquATtftKI+5K9yfviVlKekkrT33diZ7SE\r\nni6lmMAa1ljTqaQAgWVrESFtHqmHDSIGQ6fBfmAwS8+MNBYqX/mbrbriOzdg+Kxpi4m65Q==\r\n-----END RSA PRIVATE KEY-----',
+     Type: 'git',
+     Url: 'git@github.com:liquidti/aim-cookbooks.git',
+     Username: 'deploy' },
+  CustomJson: '{ "yii" : { "symlink" : "/srv/www/aimops/aimops.com/docs/yii", "docroot" : "/srv/www/aimops/aimops.com/docs/current" } }' }
+- Response:
+{ StackId: '3563c515-6298-4417-99f8-ad2d787f6569' }
+
+OpsWorks:createLayer
+- Params:
+{ StackId: '3563c515-6298-4417-99f8-ad2d787f6569',
+  Name: 'PHP App Server',
+  Shortname: 'php-app',
+  Type: 'php-app',
+  CustomRecipes: { Deploy: [ 'yii' ] } }
+- Response:
+{ LayerId: 'c4c1a34e-791d-4e35-92e2-3a29bd48a6da' }
+
+OpsWorks:createInstance
+- Params:
+{ StackId: '3563c515-6298-4417-99f8-ad2d787f6569',
+  LayerIds: [ 'c4c1a34e-791d-4e35-92e2-3a29bd48a6da' ],
+  InstanceType: 'm1.small',
+  Os: 'Ubuntu 12.04 LTS',
+  RootDeviceType: 'instance-store' }

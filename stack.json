@@ -1,0 +1,135 @@
+[
+  {
+    "api" : "OpsWorks",
+    "command" : "createStack",
+    "params" :
+    {
+      "Name" : "eval(variables.stackName)",
+      "Region" : "us-west-2",
+      "DefaultSshKeyName" : "aim-ops",
+      "HostnameTheme" : "Fruits",
+      "DefaultRootDeviceType": "instance-store",
+      "ServiceRoleArn": "arn:aws:iam::936231435304:role/aws-opsworks-service-role",
+      "DefaultInstanceProfileArn": "arn:aws:iam::936231435304:instance-profile/aws-opsworks-ec2-role",
+      "DefaultAvailabilityZone": "us-west-2a",
+      "ConfigurationManager": {
+        "Name": "Chef",
+        "Version": "11.4"
+      },
+      "UseCustomCookbooks": true,
+      "CustomCookbooksSource": {
+        "Revision": "master",
+        "SshKey": "file(.ssh/aim-ops.pem)",
+        "Type": "git",
+        "Url": "git@github.com:liquidti/aim-cookbooks.git",
+        "Username": "deploy"
+      },
+      "CustomJson": "{ \"yii\" : { \"symlink\" : \"/srv/www/aimops/aimops.com/docs/yii\", \"docroot\" : \"/srv/www/aimops/aimops.com/docs/current\" } }"
+    }
+  },
+  {
+    "api" : "OpsWorks",
+    "command" : "createLayer",
+    "params" :
+    {
+      "StackId": "eval(response.StackId)",
+      "Name": "PHP App Server",
+      "Shortname": "php-app",
+      "Type": "php-app",
+      "CustomRecipes": {
+        "Deploy": [
+          "yii"
+        ]
+      }
+    }
+  },
+  {
+    "api" : "OpsWorks",
+    "command" : "createInstance",
+    "params" : {
+      "StackId": "eval(responses[0].StackId)",
+      "LayerIds": "eval([responses[1].LayerId])",
+      "InstanceType": "m1.small",
+      "Os": "Ubuntu 12.04 LTS",
+      "RootDeviceType": "instance-store"
+    }
+  },
+  {
+    "api" : "ELB",
+    "command" : "createLoadBalancer",
+    "sleep" : 30000,
+    "params" : {
+      "Listeners": [
+      {
+        "InstancePort": 80,
+        "LoadBalancerPort": 80,
+        "Protocol": "HTTP",
+        "InstanceProtocol": "HTTP"
+      }],
+      "LoadBalancerName": "eval(variables.lbName)",
+      "AvailabilityZones": ["us-west-2a"]
+    }
+  },
+  {
+    "api" : "ELB",
+    "command" : "describeLoadBalancers",
+    "params" : {
+      "LoadBalancerNames": ["eval(variables.lbName)"]
+    }
+  },
+  {
+    "api" : "Route53",
+    "command" : "changeResourceRecordSets",
+    "params" : {
+      "ChangeBatch": {
+         "Changes": [
+         {
+           "Action": "UPSERT",
+           "ResourceRecordSet": {
+             "Name": "eval(variables.primaryDomain)",
+             "Type": "A",
+             "AliasTarget": {
+               "DNSName": "eval(response.LoadBalancerDescriptions[0].CanonicalHostedZoneName)",
+               "EvaluateTargetHealth": true,
+               "HostedZoneId": "eval(response.LoadBalancerDescriptions[0].CanonicalHostedZoneNameID)"
+             }
+           }
+         }
+         ]
+       },
+       "HostedZoneId": "eval(variables.zoneID)"
+    }
+  },
+  {
+    "api" : "OpsWorks",
+    "command" : "attachElasticLoadBalancer",
+    "params" : {
+      "ElasticLoadBalancerName": "eval(variables.lbName)",
+      "LayerId": "eval(responses[1].LayerId)"
+    }
+  },
+  {
+    "api" : "OpsWorks",
+    "command" : "createApp",
+    "params" : {
+      "StackId": "eval(responses[0].StackId)",
+      "Name": "eval(variables.siteName)",
+      "Type": "php",
+      "Domains": ["eval(variables.primaryDomain)"],
+      "AppSource": {
+        "Url": "eval(variables.gitRepo)",
+        "Username": "deploy",
+        "Type": "git",
+        "Revision": "master",
+        "SshKey": "file(.ssh/aim-ops.pem)"
+      }
+    }
+  },
+  {
+    "api" : "OpsWorks",
+    "command" : "startStack",
+    "params" : {
+       "StackId": "eval(responses[0].StackId)"
+    }
+  }
+]

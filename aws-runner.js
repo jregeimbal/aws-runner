@@ -163,11 +163,13 @@ try {
 
       process.stdin.on('end', function () {
         if (variables) variables = JSON.parse(variables);
-        console.log(variables);
         begin();
       });
 
       process.stdin.resume();
+    } else if (argv.json) {
+      variables = JSON.parse(argv.json);
+      begin();
     } else {
       begin();
     }
@@ -177,6 +179,7 @@ try {
         + '  -d : Debug mode (writes to debug.log)\n'
         + '  -v : Verbose mode (writes log to screen)\n'
         + '  -s : Accepts stream of data\n'
+        + '  --json="{}" : Pass in  variables via json string in command, be sure to escape quotes\n'
       );
   }
 } 
